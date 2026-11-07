@@ -186,7 +186,10 @@ export class RunStream implements AsyncIterable<RunStreamMessage> {
               if (!isRecord(data) || !isRecord(data.run)) continue;
               this.snapshot = data as unknown as RunStreamSnapshot;
               if (TERMINAL_STATUSES.has(this.snapshot.run.status)) this.terminalSeen = true;
+              // The idle timer measures the server, so it pauses while the consumer handles a message.
+              clearTimeout(idleTimer);
               yield { kind: "snapshot", snapshot: this.snapshot };
+              armIdle();
               continue;
             }
             if (message.event === "reconnect") {
@@ -220,7 +223,9 @@ export class RunStream implements AsyncIterable<RunStreamMessage> {
             if (event.status !== undefined && TERMINAL_STATUSES.has(event.status)) {
               this.terminalSeen = true;
             }
+            clearTimeout(idleTimer);
             yield { kind: "event", name: message.event, event };
+            armIdle();
           }
           cleanClose = !planned && !sawError;
         } catch (err) {

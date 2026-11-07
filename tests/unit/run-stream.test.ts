@@ -180,6 +180,17 @@ describe("runs.stream", () => {
     await server.closed(0); // the dead connection was closed by the client
   });
 
+  it("a slow consumer does not trip the idle timeout", async () => {
+    const server = await mockServer((req, res) => serveLog(res, lastEventId(req.headers)));
+    const seen: number[] = [];
+    for await (const m of server.client().runs.stream(RUN_ID, { idleTimeout: 100 })) {
+      if (m.kind === "event") seen.push(m.event.sequence);
+      await sleep(150); // longer than idleTimeout, with the server silent meanwhile
+    }
+    expect(seen).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(server.requests).toHaveLength(1);
+  });
+
   it("pings keep an idle connection alive", async () => {
     const server = await mockServer(async (req, res) => {
       startSSE(res);
