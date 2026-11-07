@@ -1,0 +1,34 @@
+name: Live API tests
+
+# Calls the real Edgaze API with the EDGAZE_API_KEY secret. Scheduled runs only read; start a run
+# manually with "start runs" checked to also create and cancel runs on a free workflow.
+on:
+  schedule:
+    - cron: "41 7 * * 1"
+  workflow_dispatch:
+    inputs:
+      runs:
+        description: Start runs (free workflows only)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'edgaze-ai/edgaze-typescript' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test:live
+        env:
+          EDGAZE_API_KEY: ${{ secrets.EDGAZE_API_KEY }}
+          EDGAZE_TEST_WORKFLOW_ID: ${{ vars.EDGAZE_TEST_WORKFLOW_ID }}
+          EDGAZE_TEST_INPUTS: ${{ vars.EDGAZE_TEST_INPUTS }}
+          EDGAZE_LIVE_RUNS: ${{ github.event.inputs.runs == 'true' && '1' || '0' }}

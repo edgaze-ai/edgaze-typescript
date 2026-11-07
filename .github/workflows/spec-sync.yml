@@ -1,0 +1,61 @@
+name: Sync OpenAPI spec
+
+# Pulls the published Edgaze OpenAPI document, regenerates the types and runs the tests. When the
+# document changed, it opens a pull request. Spec coverage tests fail on that PR if the API gained
+# an endpoint, query parameter or webhook event the SDK does not cover yet.
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+  repository_dispatch:
+    types: [openapi-updated]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run spec:pull
+      - run: npm run generate
+      - name: Detect changes
+        id: diff
+        run: |
+          if git diff --quiet -- spec src/generated; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "version=$(node -p "require('./spec/openapi.json').info.version")" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run checks
+        id: checks
+        if: steps.diff.outputs.changed == 'true'
+        continue-on-error: true
+        run: |
+          npm run typecheck 2>&1 | tee typecheck.log
+          npm test 2>&1 | tee test.log
+      - name: Open pull request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/openapi-sync
+          delete-branch: true
+          add-paths: |
+            spec/openapi.json
+            src/generated/openapi.ts
+          commit-message: "Sync OpenAPI ${{ steps.diff.outputs.version }}"
+          title: "Sync OpenAPI ${{ steps.diff.outputs.version }}"
+          body: |
+            The published Edgaze OpenAPI document changed to ${{ steps.diff.outputs.version }}. This updates `spec/openapi.json` and the generated types.
+
+            Checks on the regenerated code: **${{ steps.checks.outcome == 'success' && 'passing' || 'failing' }}**.
+
+            If spec coverage tests fail, the API gained something the SDK does not cover yet: add the method or parameter, document it in the README and CHANGELOG, then merge.
