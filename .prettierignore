@@ -1,0 +1,6 @@
+dist
+node_modules
+spec
+src/generated
+coverage
+CHANGELOG.md
