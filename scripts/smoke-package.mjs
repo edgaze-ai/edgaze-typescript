@@ -75,6 +75,49 @@ try {
       }
     }
     void main;
+
+    // The samples from the README and the SDKs docs page, so they keep compiling.
+    import { NotFoundError, unwrapWebhook, WebhookVerificationError } from "edgaze";
+    async function docsSamples(workflowId: string, runId: string, inputs: Record<string, unknown>) {
+      const run = await client.runs.createAndWait({ workflow: workflowId, inputs: { topic: "Tides" } });
+      if (run.status === "completed") {
+        for (const output of run.outputs) console.log(output.name, output.value);
+      } else {
+        console.error(run.status, run.reason);
+      }
+      await client.runs.create({ workflow: workflowId, inputs }, { idempotencyKey: "invoice-1" });
+      for await (const w of client.workflows.list({ q: "invoice", runnableOnly: true })) {
+        console.log(w.id, w.name, w.displayedRunPriceUsd);
+      }
+      const workflow = await client.workflows.retrieve(workflowId);
+      for (const field of workflow.inputSchema) console.log(field.nodeId, field.type, field.required);
+      let page = await client.runs.list({ limit: 50 });
+      while (page.hasNextPage()) page = await page.getNextPage();
+      const { data, requestId, response } = await client.runs.retrieve(runId).withResponse();
+      console.log(data.status, requestId, response.status);
+      try {
+        await client.runs.retrieve(runId);
+      } catch (err) {
+        if (err instanceof NotFoundError) console.log("missing");
+        else if (err instanceof APIError) console.error(err.status, err.code, err.requestId);
+        else throw err;
+      }
+    }
+    export async function POST(request: Request) {
+      try {
+        const { event, deliveryId } = await unwrapWebhook({
+          payload: await request.text(),
+          headers: request.headers,
+          secret: process.env.EDGAZE_WEBHOOK_SECRET!,
+        });
+        if (event.type === "run.completed") console.log(event.runId, deliveryId);
+        return new Response(null, { status: 200 });
+      } catch (err) {
+        if (err instanceof WebhookVerificationError) return new Response(null, { status: 400 });
+        throw err;
+      }
+    }
+    void docsSamples;
   `;
   writeFileSync(join(dir, "consumer.ts"), ts);
   for (const [module, moduleResolution] of [
