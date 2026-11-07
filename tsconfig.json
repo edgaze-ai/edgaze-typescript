@@ -15,5 +15,7 @@
     "declaration": true,
     "types": ["node"]
   },
-  "include": ["src", "tests", "scripts", "examples", "*.config.ts"]
+  "include": ["src", "tests", "scripts", "examples", "*.config.ts"],
+  // Runs under Deno against the built bundle, which does not exist before `npm run build`.
+  "exclude": ["scripts/smoke-deno.ts"]
 }
