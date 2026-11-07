@@ -4,7 +4,7 @@
   "description": "Official TypeScript SDK for the Edgaze API: run AI workflows, stream their progress and verify webhooks.",
   "license": "MIT",
   "author": "Edge Platforms, Inc. <support@edgaze.ai>",
-  "homepage": "https://www.edgaze.ai/docs/api/sdks/typescript",
+  "homepage": "https://www.edgaze.ai/docs/api/sdks",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/edgaze-ai/edgaze-typescript.git"
