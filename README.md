@@ -12,7 +12,7 @@ The official TypeScript and JavaScript client for the [Edgaze API](https://www.e
 ## Install
 
 ```bash
-npm install edgaze
+npm install @edgaze/sdk
 ```
 
 ## Quick start
@@ -20,7 +20,7 @@ npm install edgaze
 Create an API key in the [Developer console](https://www.edgaze.ai/developer/keys) and set it as `EDGAZE_API_KEY`.
 
 ```ts
-import Edgaze from "edgaze";
+import Edgaze from "@edgaze/sdk";
 
 const client = new Edgaze(); // reads EDGAZE_API_KEY
 
@@ -146,7 +146,7 @@ Run listings use a cursor, so runs created while you page are never repeated or 
 Every error extends `EdgazeError`. When the API responds with an error, you get an `APIError` subclass carrying the HTTP status, a machine-readable `code` and the request id:
 
 ```ts
-import { APIError, NotFoundError, RateLimitError } from "edgaze";
+import { APIError, NotFoundError, RateLimitError } from "@edgaze/sdk";
 
 try {
   await client.runs.retrieve(runId);
@@ -202,7 +202,7 @@ Edgaze posts to your endpoint when a run completes, fails or is cancelled. Verif
 
 ```ts
 // Next.js route handler (app/api/edgaze/route.ts)
-import { unwrapWebhook, WebhookVerificationError } from "edgaze";
+import { unwrapWebhook, WebhookVerificationError } from "@edgaze/sdk";
 
 export async function POST(request: Request) {
   try {

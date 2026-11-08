@@ -40,7 +40,7 @@ export interface ClientOptions {
  * The Edgaze API client.
  *
  * ```ts
- * import Edgaze from "edgaze";
+ * import Edgaze from "@edgaze/sdk";
  *
  * const client = new Edgaze(); // reads EDGAZE_API_KEY
  * const run = await client.runs.createAndWait({ workflow: "…", inputs: { topic: "tides" } });

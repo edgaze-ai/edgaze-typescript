@@ -36,7 +36,7 @@ try {
 
   writeFileSync(
     join(dir, "esm.mjs"),
-    `import Edgaze, { Edgaze as Named, APIError, unwrapWebhook, VERSION } from "edgaze";
+    `import Edgaze, { Edgaze as Named, APIError, unwrapWebhook, VERSION } from "@edgaze/sdk";
      if (Edgaze !== Named) throw new Error("default export mismatch");
      if (typeof unwrapWebhook !== "function" || typeof APIError !== "function") throw new Error("exports");
      const client = new Edgaze({ apiKey: "sk_smoke", baseURL: "https://x.test/v1", fetch: ${fakeFetch} });
@@ -46,8 +46,8 @@ try {
   );
   writeFileSync(
     join(dir, "cjs.cjs"),
-    `const { Edgaze, NotFoundError, VERSION } = require("edgaze");
-     const Default = require("edgaze").default;
+    `const { Edgaze, NotFoundError, VERSION } = require("@edgaze/sdk");
+     const Default = require("@edgaze/sdk").default;
      if (Default !== Edgaze || typeof NotFoundError !== "function") throw new Error("exports");
      const client = new Edgaze({ apiKey: "sk_smoke", baseURL: "https://x.test/v1", fetch: ${fakeFetch} });
      client.runs.retrieve("r1").then((run) => {
@@ -55,7 +55,7 @@ try {
        console.log("CJS ok", VERSION);
      }).catch((e) => { console.error(e); process.exit(1); });`,
   );
-  const ts = `import Edgaze, { type Run, type RunStreamMessage, APIError } from "edgaze";
+  const ts = `import Edgaze, { type Run, type RunStreamMessage, APIError } from "@edgaze/sdk";
     const client = new Edgaze({ apiKey: "sk" });
     async function main(): Promise<Run> {
       const { run } = await client.runs.create({ workflow: "w", inputs: { a: 1 } });
@@ -77,7 +77,7 @@ try {
     void main;
 
     // The samples from the README and the SDKs docs page, so they keep compiling.
-    import { NotFoundError, unwrapWebhook, WebhookVerificationError } from "edgaze";
+    import { NotFoundError, unwrapWebhook, WebhookVerificationError } from "@edgaze/sdk";
     async function docsSamples(workflowId: string, runId: string, inputs: Record<string, unknown>) {
       const run = await client.runs.createAndWait({ workflow: workflowId, inputs: { topic: "Tides" } });
       if (run.status === "completed") {

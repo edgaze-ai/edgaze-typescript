@@ -1,5 +1,5 @@
 {
-  "name": "edgaze",
+  "name": "@edgaze/sdk",
   "version": "0.1.0",
   "description": "Official TypeScript SDK for the Edgaze API: run AI workflows, stream their progress and verify webhooks.",
   "license": "MIT",
